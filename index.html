@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد الإنفوجرافيك - مدرسة البخاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+    <style>
+        :root {
+            --al-bukhari-blue: #0A3D62;
+            --primary-color: #0ea5e9;
+            --bg-color: #f0f9ff;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--al-bukhari-blue);
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .logo { width: 110px; height: 110px; object-fit: cover; border-radius: 50%; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); border: 3px solid #ffffff; }
+        .extra-logo { width: 90px; height: 90px; object-fit: cover; border-radius: 50%; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); display: none; background: #fff; border: 3px solid #ffffff; }
+
+        .header-text { display: flex; flex-direction: column; }
+        .header-tagline { font-size: 1rem; font-weight: 600; opacity: 0.9; margin-bottom: 2px; color: #bae6fd; }
+        .school-name { font-size: 1.6rem; font-weight: 800; margin: 0; line-height: 1.2; }
+        .school-slogan { font-size: 1rem; font-weight: 400; opacity: 0.9; }
+        .coordinator { font-size: 0.9rem; margin-top: 5px; color: #cbd5e1; font-weight: 600; }
+
+        .container {
+            max-width: 850px;
+            margin: 30px auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        h2 { text-align: center; color: var(--al-bukhari-blue); margin-bottom: 25px; font-weight: 800; }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #334155; }
+        .hint { display: block; margin-top: 6px; font-size: 0.85rem; color: #64748b; font-weight: 400; }
+
+        input[type="text"], input[type="url"], textarea, input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            box-sizing: border-box;
+            background-color: #f8fafc;
+            font-size: 1rem;
+        }
+
+        .extra-logo-preview-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .extra-logo-preview-wrap img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+            display: none;
+            padding: 4px;
+        }
+        .btn-remove-logo {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            display: none;
+        }
+
+        .btn-generate {
+            background-color: var(--al-bukhari-blue);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .btn-generate:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        #result-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #cbd5e1;
+        }
+
+        .instruction-box {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #b45309;
+            font-weight: 600;
+        }
+
+        .prompt-box {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid var(--al-bukhari-blue);
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-copy {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .ai-links { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
+        .ai-link {
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+            font-size: 1.1rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .claude-link { background-color: #d97757; }
+        .gpt-link { background-color: #10a37f; }
+        .ai-link:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-family: 'Cairo', sans-serif;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-right">
+            <img src="https://i.postimg.cc/SNgVgv8L/my-new-icon.png" alt="شعار المدرسة" class="logo">
+            <img id="headerExtraLogo" src="" alt="شعار إضافي" class="extra-logo">
+            <div class="header-text">
+                <span class="header-tagline">ومضات ذكية مع منى مصطفى</span>
+                <h1 class="school-name">المنصة الذكية لإنشاء انفوجرافيك</h1>
+            </div>
+        </div>
+        <i class="fa-solid fa-wand-magic-sparkles fa-2xl"></i>
+    </header>
+
+    <div class="container">
+        <h2>صانع ملخصات الإنفوجرافيك السريعة</h2>
+
+        <form id="promptForm">
+            <div class="form-group">
+                <label>اسم المعلم/ة:</label>
+                <input type="text" id="teacherName" placeholder="سيظهر في أسفل التصميم" required>
+            </div>
+
+            <div class="form-group">
+                <label>عنوان الدرس:</label>
+                <input type="text" id="subjectTitle" placeholder="مثال: تركيب الخلية الحيوانية" required>
+            </div>
+
+            <div class="form-group">
+                <label>محتوى الدرس (النص):</label>
+                <textarea id="materials" placeholder="الصق شرح الدرس هنا... سنقوم باختصاره آلياً" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>أو ارفع ملف الدرس (Word):</label>
+                <input type="file" id="fileUpload" accept=".txt, .docx">
+            </div>
+
+            <div class="form-group">
+                <label>إضافة شعار آخر إلى التصميم (اختياري):</label>
+                <input type="file" id="extraLogoUpload" accept="image/*">
+                <span class="hint">يمكنك رفع شعار إضافي (مثل شعار الفصل أو النشاط)، وسيظهر بجانب شعار المدرسة في رأس هذه الصفحة، وسيتم تضمينه في تعليمات التصميم المولّدة.</span>
+                <div class="extra-logo-preview-wrap">
+                    <img id="extraLogoPreview" alt="معاينة الشعار الإضافي">
+                    <button type="button" class="btn-remove-logo" id="removeExtraLogo">إزالة الشعار الإضافي</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-generate">توليد الإنفوجرافيك المختصر <i class="fa-solid fa-bolt-lightning"></i></button>
+        </form>
+
+        <div id="result-section">
+            <div class="instruction-box">
+                <i class="fa-solid fa-check"></i> تم تجهيز الأمر! انسخ النص أدناه والصقه في Claude للحصول على إنفوجرافيك "صفحة واحدة - عرضية - مختصرة".
+            </div>
+
+            <button class="btn-copy" onclick="copyPrompt()">
+                <i class="fa-solid fa-copy"></i> نسخ الأمر المطور
+            </button>
+
+            <div class="prompt-box" id="generatedPrompt"></div>
+
+            <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="font-weight: 600; color: #475569; margin-bottom: 15px;">🚀 انتقل الآن لتفعيل الإنفوجرافيك:</p>
+                <div class="ai-links">
+                    <a href="https://claude.ai/new" target="_blank" class="ai-link claude-link">
+                        <i class="fa-solid fa-robot"></i> كلود (Claude) - الأفضل للتصميم
+                    </a>
+                    <a href="https://chatgpt.com/" target="_blank" class="ai-link gpt-link">
+                        <i class="fa-solid fa-comment-dots"></i> شات جي بي تي (ChatGPT)
+                    </a>
+                </div>
+                <p id="extraLogoNote" style="display:none; margin-top: 15px; font-size: 0.9rem; color: #b45309; font-weight: 600;">
+                    <i class="fa-solid fa-circle-info"></i> لقد أضفت شعاراً إضافياً: لا تنسَ إرفاق صورة هذا الشعار مع الأمر عند لصقه في الذكاء الاصطناعي حتى يتمكن من استخدامه في التصميم.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">تم النسخ! اذهب والصقه في موقع الذكاء الاصطناعي</div>
+
+    <script>
+        const MAIN_LOGO_URL = "https://i.postimg.cc/SNgVgv8L/my-new-icon.png";
+
+        let extraLogoDataUrl = null;
+
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.name.endsWith('.docx')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mammoth.extractRawText({arrayBuffer: e.target.result})
+                        .then(function(result) { document.getElementById('materials').value += result.value; });
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        // معالجة رفع الشعار الإضافي
+        document.getElementById('extraLogoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                extraLogoDataUrl = e.target.result;
+
+                // معاينة في الفورم
+                const previewImg = document.getElementById('extraLogoPreview');
+                previewImg.src = extraLogoDataUrl;
+                previewImg.style.display = 'inline-block';
+                document.getElementById('removeExtraLogo').style.display = 'inline-block';
+
+                // إظهار الشعار في رأس الصفحة
+                const headerLogo = document.getElementById('headerExtraLogo');
+                headerLogo.src = extraLogoDataUrl;
+                headerLogo.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // إزالة الشعار الإضافي
+        document.getElementById('removeExtraLogo').addEventListener('click', function() {
+            extraLogoDataUrl = null;
+            document.getElementById('extraLogoUpload').value = '';
+
+            const previewImg = document.getElementById('extraLogoPreview');
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+            this.style.display = 'none';
+
+            const headerLogo = document.getElementById('headerExtraLogo');
+            headerLogo.src = '';
+            headerLogo.style.display = 'none';
+        });
+
+        document.getElementById('promptForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const teacherName = document.getElementById('teacherName').value.trim();
+            const subjectTitle = document.getElementById('subjectTitle').value.trim();
+            const materials = document.getElementById('materials').value.trim();
+
+            // بناء سطر تعليمات الشعار حسب وجود شعار إضافي أم لا
+            let logoInstruction = `5. الهوية المدرسية: في الأعلى شريط أزرق (#0A3D62) يحتوي على شعار المدرسة (${MAIN_LOGO_URL}) وعنوان "مدرسة البخاري الإعدادية".`;
+
+            let extraLogoNote = document.getElementById('extraLogoNote');
+
+            if (extraLogoDataUrl) {
+                logoInstruction += ` بالإضافة إلى ذلك، ضع شعاراً إضافياً ثانياً بجانب شعار المدرسة في نفس الشريط العلوي (الشعار الإضافي سيتم إرفاقه كصورة منفصلة مع هذا الأمر، استخدمه كما هو دون تعديل).`;
+                extraLogoNote.style.display = 'block';
+            } else {
+                extraLogoNote.style.display = 'none';
+            }
+
+            const promptText = `أنت مصمم معلومات (Information Designer) محترف. مهمتك تحويل النص التالي إلى إنفوجرافيك تعليمي مذهل في صفحة واحدة عرضية (Single Page Landscape).
+
+العنوان: ${subjectTitle}
+النص المراد اختصاره:
+"""
+${materials}
+"""
+
+التعليمات الفنية الإجبارية:
+1. الاختصار الشديد: لا تضع فقرات طويلة. قم بتحويل الشرح إلى "رؤوس أقلام" ونقاط مركزة جداً يسهل على الطالب حفظها بلمحة.
+2. التصميم بالعرض (Landscape): استخدم عرضاً كاملاً للصفحة ووزع المحتوى في بطاقات (Cards) ملونة بجانب بعضها البعض (Grid System).
+3. الألوان الحماسية: استخدم باليت ألوان حيوية وعالية الطاقة (مثل البرتقالي المشرق، الأزرق الكهربائي، الأرجواني، الأخضر الفسفوري) مع خلفية فاتحة جداً.
+4. الرموز التعبيرية (Emojis): ضع رمزاً تعبيرياً كبيراً وواضحاً (مثل ⚡، 🧠، 🔬) لكل قسم ليكون دليلاً بصرياً للمحتوى.
+${logoInstruction}
+6. الطباعة: تأكد من إضافة كود CSS: @media print { @page { size: A4 landscape; margin: 0; } } وزر "حفظ كـ PDF" يختفي عند الطباعة.
+7. التوقيع: في أسفل الإنفوجرافيك جهة اليسار اكتب بخط أنيق: "إعداد المعلم/ة: ${teacherName}".
+
+أعطني كود HTML و CSS كاملاً في ملف واحد.`;
+
+            document.getElementById('generatedPrompt').textContent = promptText;
+            document.getElementById('result-section').style.display = 'block';
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        function copyPrompt() {
+            const promptText = document.getElementById('generatedPrompt').textContent;
+            navigator.clipboard.writeText(promptText).then(() => {
+                const toast = document.getElementById("toast");
+                toast.className = "show";
+                setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>
