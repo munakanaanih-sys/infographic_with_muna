@@ -101,6 +101,27 @@
             display: none;
         }
 
+        .orientation-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .orientation-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #334155;
+            flex: 1;
+            min-width: 200px;
+        }
+        .orientation-option input { width: auto; margin: 0; }
+
         .btn-generate {
             background-color: var(--al-bukhari-blue);
             color: white;
@@ -240,6 +261,24 @@
             </div>
 
             <div class="form-group">
+                <label>اسم المدرسة (اختياري):</label>
+                <input type="text" id="schoolName" placeholder="مثال: مدرسة الأمل الابتدائية - سيظهر في رأس الإنفوجرافيك بخط متوسط">
+                <span class="hint">إذا تركت هذا الحقل فارغاً، سيظهر في رأس الإنفوجرافيك اسم المعلم/ة فقط دون أي اسم مدرسة.</span>
+            </div>
+
+            <div class="form-group">
+                <label>اتجاه صفحة الإنفوجرافيك:</label>
+                <div class="orientation-options">
+                    <label class="orientation-option">
+                        <input type="radio" name="orientation" value="landscape" checked> عرضي (Landscape) - أفضل للعرض على الشاشة
+                    </label>
+                    <label class="orientation-option">
+                        <input type="radio" name="orientation" value="portrait"> طولي (Portrait) - أفضل للطباعة على A4
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label>إضافة شعار آخر إلى التصميم (اختياري):</label>
                 <input type="file" id="extraLogoUpload" accept="image/*">
                 <span class="hint">يمكنك رفع شعار إضافي (مثل شعار الفصل أو النشاط)، وسيظهر بجانب شعار المدرسة في رأس هذه الصفحة، وسيتم تضمينه في تعليمات التصميم المولّدة.</span>
@@ -343,20 +382,33 @@
             const teacherName = document.getElementById('teacherName').value.trim();
             const subjectTitle = document.getElementById('subjectTitle').value.trim();
             const materials = document.getElementById('materials').value.trim();
+            const schoolName = document.getElementById('schoolName').value.trim();
+            const orientation = document.querySelector('input[name="orientation"]:checked').value; // 'landscape' | 'portrait'
 
-            // بناء سطر تعليمات الشعار حسب وجود شعار إضافي أم لا
-            let logoInstruction = `5. الهوية المدرسية: في الأعلى شريط أزرق (#0A3D62) يحتوي على شعار المدرسة (${MAIN_LOGO_URL}) وعنوان "مدرسة البخاري الإعدادية".`;
+            const isLandscape = orientation === 'landscape';
+            const orientationDesc = isLandscape ? 'عرضية (Landscape)' : 'طولية (Portrait)';
+            const layoutInstruction = isLandscape
+                ? 'استخدم عرضاً كاملاً للصفحة ووزع المحتوى في بطاقات (Cards) ملونة بجانب بعضها البعض بشكل أفقي (Grid System).'
+                : 'استخدم تخطيطاً عمودياً يناسب صفحة طويلة، ووزع المحتوى في بطاقات (Cards) ملونة مرتبة فوق بعضها أو في شبكة من عمودين (Grid عمودي).';
+
+            // نص الهوية: اسم المدرسة (اختياري) + اسم المعلم في رأس الإنفوجرافيك بخط متوسط
+            let schoolHeaderInstruction = schoolName
+                ? `اكتب في رأس الإنفوجرافيك بخط بحجم متوسط اسم المدرسة "${schoolName}" واسم المعلم/ة "${teacherName}".`
+                : `اكتب في رأس الإنفوجرافيك بخط بحجم متوسط اسم المعلم/ة "${teacherName}" فقط (دون كتابة اسم أي مدرسة).`;
+
+            // الشعار الأساسي للمنصة (ومضات ذكية) - يجب أن يظهر دائماً على اليمين في رأس الإنفوجرافيك الناتج
+            let logoInstruction = `في أعلى الإنفوجرافيك (شريط الهوية/الرأس)، ضع شعار "ومضات ذكية" (${MAIN_LOGO_URL}) على الجانب الأيمن من الشريط.`;
 
             let extraLogoNote = document.getElementById('extraLogoNote');
 
             if (extraLogoDataUrl) {
-                logoInstruction += ` بالإضافة إلى ذلك، ضع شعاراً إضافياً ثانياً بجانب شعار المدرسة في نفس الشريط العلوي (الشعار الإضافي سيتم إرفاقه كصورة منفصلة مع هذا الأمر، استخدمه كما هو دون تعديل).`;
+                logoInstruction += ` بالإضافة إلى ذلك، ضع شعاراً إضافياً ثانياً بجانب شعار "ومضات ذكية" في نفس الشريط العلوي (هذا الشعار الإضافي سيتم إرفاقه كصورة منفصلة مع هذا الأمر، استخدمه كما هو دون تعديل).`;
                 extraLogoNote.style.display = 'block';
             } else {
                 extraLogoNote.style.display = 'none';
             }
 
-            const promptText = `أنت مصمم معلومات (Information Designer) محترف. مهمتك تحويل النص التالي إلى إنفوجرافيك تعليمي مذهل في صفحة واحدة عرضية (Single Page Landscape).
+            const promptText = `أنت مصمم معلومات (Information Designer) محترف. مهمتك تحويل النص التالي إلى إنفوجرافيك تعليمي مذهل في صفحة واحدة ${orientationDesc}.
 
 العنوان: ${subjectTitle}
 النص المراد اختصاره:
@@ -366,12 +418,12 @@ ${materials}
 
 التعليمات الفنية الإجبارية:
 1. الاختصار الشديد: لا تضع فقرات طويلة. قم بتحويل الشرح إلى "رؤوس أقلام" ونقاط مركزة جداً يسهل على الطالب حفظها بلمحة.
-2. التصميم بالعرض (Landscape): استخدم عرضاً كاملاً للصفحة ووزع المحتوى في بطاقات (Cards) ملونة بجانب بعضها البعض (Grid System).
+2. التصميم: ${layoutInstruction}
 3. الألوان الحماسية: استخدم باليت ألوان حيوية وعالية الطاقة (مثل البرتقالي المشرق، الأزرق الكهربائي، الأرجواني، الأخضر الفسفوري) مع خلفية فاتحة جداً.
 4. الرموز التعبيرية (Emojis): ضع رمزاً تعبيرياً كبيراً وواضحاً (مثل ⚡، 🧠، 🔬) لكل قسم ليكون دليلاً بصرياً للمحتوى.
-${logoInstruction}
-6. الطباعة: تأكد من إضافة كود CSS: @media print { @page { size: A4 landscape; margin: 0; } } وزر "حفظ كـ PDF" يختفي عند الطباعة.
-7. التوقيع: في أسفل الإنفوجرافيك جهة اليسار اكتب بخط أنيق: "إعداد المعلم/ة: ${teacherName}".
+5. هوية رأس الإنفوجرافيك: ${logoInstruction} ${schoolHeaderInstruction} ممنوع منعاً تاماً ذكر أو كتابة اسم "مدرسة البخاري" أو أي اسم مدرسة لم يُذكر في هذا الأمر.
+6. الطباعة: التصميم مُعد للطباعة على ورق A4 بشكل ${orientationDesc}. أضف كود CSS: @media print { @page { size: A4 ${orientation}; margin: 0; } } وزر "حفظ كـ PDF" يختفي عند الطباعة.
+7. التذييل (أسفل الإنفوجرافيك): في الجهة اليسرى اكتب بخط أنيق "إعداد المعلم/ة: ${teacherName}"، وفي أسفل الصفحة بخط صغير جداً اكتب عبارة "ومضات ذكية".
 
 أعطني كود HTML و CSS كاملاً في ملف واحد.`;
 
