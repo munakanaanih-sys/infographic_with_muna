@@ -325,6 +325,21 @@
         const MAIN_LOGO_URL = "https://i.postimg.cc/SNgVgv8L/my-new-icon.png";
 
         let extraLogoDataUrl = null;
+        let mainLogoDataUrl = null;
+
+        // تحويل الشعار الرئيسي (ومضات ذكية) إلى صورة Base64 مضمّنة،
+        // لضمان ظهوره دائماً داخل أي إنفوجرافيك يُنتجه الذكاء الاصطناعي
+        // (الروابط الخارجية قد لا تُحمَّل داخل بيئة المعاينة الخاصة بأدوات الذكاء الاصطناعي).
+        (function preloadMainLogo() {
+            fetch(MAIN_LOGO_URL)
+                .then(res => res.blob())
+                .then(blob => {
+                    const reader = new FileReader();
+                    reader.onload = function() { mainLogoDataUrl = reader.result; };
+                    reader.readAsDataURL(blob);
+                })
+                .catch(() => { mainLogoDataUrl = null; });
+        })();
 
         document.getElementById('fileUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -391,24 +406,25 @@
                 ? 'استخدم عرضاً كاملاً للصفحة ووزع المحتوى في بطاقات (Cards) ملونة بجانب بعضها البعض بشكل أفقي (Grid System).'
                 : 'استخدم تخطيطاً عمودياً يناسب صفحة طويلة، ووزع المحتوى في بطاقات (Cards) ملونة مرتبة فوق بعضها أو في شبكة من عمودين (Grid عمودي).';
 
-            // نص الهوية: اسم المدرسة (اختياري) + اسم المعلم في رأس الإنفوجرافيك بخط متوسط
-            let schoolHeaderInstruction = schoolName
-                ? `اكتب في رأس الإنفوجرافيك بخط بحجم متوسط اسم المدرسة "${schoolName}" واسم المعلم/ة "${teacherName}".`
-                : `اكتب في رأس الإنفوجرافيك بخط بحجم متوسط اسم المعلم/ة "${teacherName}" فقط (دون كتابة اسم أي مدرسة).`;
+            // قيد بشأن اسم المدرسة (مختصر، مذكور مرة واحدة)
+            let schoolNameConstraint = schoolName
+                ? `اكتب اسم المدرسة "${schoolName}" فقط، ولا تكتب أي اسم مدرسة آخر مهما كان.`
+                : `ممنوع منعاً تاماً كتابة أي اسم مدرسة (لا "البخاري" ولا أي اسم آخر) - اتركها بدون اسم مدرسة.`;
 
-            // الشعار الأساسي للمنصة (ومضات ذكية) - يجب أن يظهر دائماً على اليمين في رأس الإنفوجرافيك الناتج، بشكل دائري وفعلي (وليس مجرد دائرة فارغة)
-            let logoInstruction = `في أعلى الإنفوجرافيك (شريط الهوية/الرأس)، ضع وسم الصورة التالي بالضبط كما هو دون أي تعديل في الرابط، في الجانب الأيمن من الشريط:
-<img src="${MAIN_LOGO_URL}" alt="ومضات ذكية" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #ffffff;">
-تأكد أن الصورة تظهر فعلياً بشكل دائري واضح (وليس دائرة فارغة أو placeholder)، ولا تستبدل الرابط برابط آخر ولا تستخدم أيقونة بديلة.`;
+            // نص الهوية: اسم المدرسة (اختياري) + اسم المعلم بخط متوسط
+            let schoolHeaderInstruction = schoolName
+                ? `اسم المدرسة "${schoolName}" واسم المعلم/ة "${teacherName}" بخط متوسط`
+                : `اسم المعلم/ة "${teacherName}" فقط بخط متوسط (بدون اسم مدرسة)`;
+
+            // الشعار الأساسي للمنصة (ومضات ذكية) - نستخدم نسخة Base64 إن كانت جاهزة لضمان ظهوره فعلياً
+            const mainLogoSrc = mainLogoDataUrl || MAIN_LOGO_URL;
+            const logoStyle = "width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #fff;";
+            let logosHtml = `<img src="${mainLogoSrc}" alt="ومضات ذكية" style="${logoStyle}">`;
 
             let extraLogoNote = document.getElementById('extraLogoNote');
 
             if (extraLogoDataUrl) {
-                logoInstruction += `
-
-بالإضافة إلى ذلك، ضع شعاراً إضافياً ثانياً بجانب شعار "ومضات ذكية" في نفس الشريط العلوي، باستخدام وسم الصورة التالي بالضبط (الصورة مضمّنة كبيانات Base64 جاهزة، استخدمها كما هي دون أي تعديل):
-<img src="${extraLogoDataUrl}" alt="شعار إضافي" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #ffffff;">
-تأكد أن هذا الشعار الإضافي يظهر فعلياً بشكل دائري بجانب شعار "ومضات ذكية" مباشرة.`;
+                logosHtml += ` <img src="${extraLogoDataUrl}" alt="شعار إضافي" style="${logoStyle}">`;
                 extraLogoNote.style.display = 'block';
                 const approxKB = Math.round((extraLogoDataUrl.length * 3 / 4) / 1024);
                 extraLogoNote.textContent = `ملاحظة: تم تضمين شعارك الإضافي داخل الأمر مباشرة (≈ ${approxKB} كيلوبايت). إذا كان حجم الأمر كبيراً جداً عند اللصق، جرّب رفع شعار بحجم أصغر (أقل من 200KB) لتفادي مشاكل اللصق.`;
@@ -416,22 +432,24 @@
                 extraLogoNote.style.display = 'none';
             }
 
-            const promptText = `أنت مصمم معلومات (Information Designer) محترف. مهمتك تحويل النص التالي إلى إنفوجرافيك تعليمي مذهل في صفحة واحدة ${orientationDesc}.
+            const promptText = `أنت مصمم معلومات محترف. حوّل النص التالي إلى إنفوجرافيك تعليمي في صفحة واحدة ${orientationDesc}، مُعد للطباعة على A4 (${orientation}).
 
 العنوان: ${subjectTitle}
-النص المراد اختصاره:
+المحتوى:
 """
 ${materials}
 """
 
-التعليمات الفنية الإجبارية:
-1. الاختصار الشديد: لا تضع فقرات طويلة. قم بتحويل الشرح إلى "رؤوس أقلام" ونقاط مركزة جداً يسهل على الطالب حفظها بلمحة.
-2. التصميم: ${layoutInstruction}
-3. الألوان الحماسية: استخدم باليت ألوان حيوية وعالية الطاقة (مثل البرتقالي المشرق، الأزرق الكهربائي، الأرجواني، الأخضر الفسفوري) مع خلفية فاتحة جداً.
-4. الرموز التعبيرية (Emojis): ضع رمزاً تعبيرياً كبيراً وواضحاً (مثل ⚡، 🧠، 🔬) لكل قسم ليكون دليلاً بصرياً للمحتوى.
-5. هوية رأس الإنفوجرافيك: ${logoInstruction} ${schoolHeaderInstruction} ممنوع منعاً تاماً ذكر أو كتابة اسم "مدرسة البخاري" أو أي اسم مدرسة لم يُذكر في هذا الأمر.
-6. الطباعة: التصميم مُعد للطباعة على ورق A4 بشكل ${orientationDesc}. أضف كود CSS: @media print { @page { size: A4 ${orientation}; margin: 0; } } وزر "حفظ كـ PDF" يختفي عند الطباعة.
-7. التذييل (أسفل الإنفوجرافيك): في الجهة اليسرى اكتب بخط أنيق "إعداد المعلم/ة: ${teacherName}"، وفي أسفل الصفحة بخط صغير جداً اكتب عبارة "ومضات ذكية".
+شروط إجبارية:
+- اختصار شديد: حوّل المحتوى إلى نقاط مركزة جداً مع رمز تعبيري (Emoji) بارز لكل قسم.
+- ${layoutInstruction}
+- ألوان حيوية عالية الطاقة على خلفية فاتحة.
+- في رأس الصفحة (يمين الشريط) ضع هذه الصورة/الصور دائرية وفعلية كما هي بدون تعديل: ${logosHtml}
+- بخط متوسط في الرأس اكتب: ${schoolHeaderInstruction}.
+- ⚠️ ${schoolNameConstraint}
+- زر "📄 تحميل PDF" يستدعي window.print() ويُخفى عند الطباعة عبر @media print.
+- أضف: @media print { @page { size: A4 ${orientation}; margin: 0; } }
+- أسفل الصفحة: يسار "إعداد المعلم/ة: ${teacherName}"، ويمين بخط صغير جداً (8-10px) "ومضات ذكية" (إجباري ويجب أن يظهر).
 
 أعطني كود HTML و CSS كاملاً في ملف واحد.`;
 
